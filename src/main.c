@@ -14,7 +14,14 @@
 #define FONT_FILE "/usr/share/fonts/TTF/JetBrainsMonoNerdFontMono-Regular.ttf"
 #define pse()                                                                  \
   printf("Error: %s", SDL_GetError());                                         \
-  code = 1;
+  code = 1;                                                                    \
+  goto cleanup;
+
+TTF_Font *font = NULL;
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+TTF_TextEngine *text_engine = NULL;
+TTF_Text *text = NULL;
 
 int main(void) {
   // code to return from the program with
@@ -23,55 +30,47 @@ int main(void) {
   // initialize SDL with video subsystem
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     pse();
-    goto quit;
   }
 
   // initialize SDL_ttf
   if (!TTF_Init()) {
     pse();
-    goto cleanup_ttf;
   }
 
   // open our font
-  TTF_Font *font = TTF_OpenFont(FONT_FILE, 16);
+  font = TTF_OpenFont(FONT_FILE, 16);
   if (font == NULL) {
     pse();
-    goto cleanup_font;
   }
 
   // create a resizable window
-  SDL_Window *window = SDL_CreateWindow("ped", INIT_WIDTH, INIT_HEIGHT, SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow("ped", INIT_WIDTH, INIT_HEIGHT, SDL_WINDOW_RESIZABLE);
   if (window == NULL) {
     pse();
-    goto cleanup_window;
   }
 
   // create a renderer
-  SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
+  renderer = SDL_CreateRenderer(window, NULL);
   printf("%s", SDL_GetError());
   if (renderer == NULL) {
     pse();
-    goto cleanup_renderer;
   }
 
   // create a text engine to render text to the SDL renderer
-  TTF_TextEngine *text_engine = TTF_CreateRendererTextEngine(renderer);
+  text_engine = TTF_CreateRendererTextEngine(renderer);
   if (text_engine == NULL) {
     pse();
-    goto cleanup_text_engine;
   }
 
   // create a text to be rendered on the window
-  TTF_Text *text = TTF_CreateText(text_engine, font, "Hello, World!", 0);
+  text = TTF_CreateText(text_engine, font, "Hello, World!", 0);
   if (text == NULL) {
     pse();
-    goto cleanup_text;
   }
 
   // set text color to be black
   if (!TTF_SetTextColor(text, 0, 0, 0, 255)) {
     pse();
-    goto cleanup_all;
   }
   
   // event loop with quit event state
@@ -90,43 +89,33 @@ int main(void) {
     // set drawing color to white
     if (!SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255)) {
       pse();
-      goto cleanup_all;
     }
 
     // clear window background with drawing color
     if (!SDL_RenderClear(renderer)) {
       pse();
-      goto cleanup_all;
     }
    
     // render the text on the window
     if (!TTF_DrawRendererText(text, 100, 100)) {
       pse();
-      goto cleanup_all;
     }
 
     // present the screen
     if (!SDL_RenderPresent(renderer)) {
       pse();
-      goto cleanup_all;
     }
   }
 
   // cleanup
- cleanup_all:
-  TTF_DestroyText(text);
- cleanup_text:
-  TTF_DestroyRendererTextEngine(text_engine);
- cleanup_text_engine:
-  SDL_DestroyRenderer(renderer);
- cleanup_renderer:
-  SDL_DestroyWindow(window);
- cleanup_window:
-  TTF_CloseFont(font);
- cleanup_font:
+ cleanup:
+  if (text != NULL) TTF_DestroyText(text);
+  if (text_engine != NULL) TTF_DestroyRendererTextEngine(text_engine);
+  if (renderer != NULL) SDL_DestroyRenderer(renderer);
+  if (window != NULL) SDL_DestroyWindow(window);
+  if (font != NULL) TTF_CloseFont(font);
   TTF_Quit();
- cleanup_ttf:
   SDL_Quit();
- quit:
+  
   return code;
 }
