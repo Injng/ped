@@ -1,2 +1,5 @@
+CFLAGS = -std=c11 -pedantic -Wall -Wextra -g -fsanitize=address
+LDLIBS = -lSDL3_ttf -lSDL3
+
 ped: src/main.c
-	cc -g -pedantic -Wall -Wextra src/main.c -o main.o -fsanitize=address -lSDL3
+	cc $(CFLAGS) src/main.c -o main.o $(LDLIBS)

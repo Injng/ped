@@ -3,10 +3,11 @@
     "arguments": [
       "/usr/bin/cc",
       "-c",
-      "-g",
+      "-std=c11",
       "-pedantic",
       "-Wall",
       "-Wextra",
+      "-g",
       "-fsanitize=address",
       "-o",
       "main.o",
