@@ -13,8 +13,8 @@
       "main.o",
       "src/main.c"
     ],
-    "directory": "/home/lnjng/Projects/dev/ped",
-    "file": "/home/lnjng/Projects/dev/ped/src/main.c",
-    "output": "/home/lnjng/Projects/dev/ped/main.o"
+    "directory": "/home/lnjng/Projects/dev/pedit",
+    "file": "/home/lnjng/Projects/dev/pedit/src/main.c",
+    "output": "/home/lnjng/Projects/dev/pedit/main.o"
   }
 ]
