@@ -1,3 +1,4 @@
+#include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_rect.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -176,7 +177,11 @@ int main(void) {
         quit = true;
         break;
       case SDL_EVENT_KEY_DOWN:
-        arrput(text, event.key.key);
+        if (event.key.key == SDLK_BACKSPACE) {
+          if (arrlen(text) > 0) arrdel(text, arrlen(text)-1);
+        } else {
+          arrput(text, event.key.key);
+        }
         break;
       }
     }
