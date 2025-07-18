@@ -20,8 +20,8 @@
 TTF_Font *font = NULL;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
-TTF_Text *text = NULL;
 Glyphs *glyphs = NULL;
+uint32_t *input = NULL;
 
 int main(void) {
   // code to return from the program with
@@ -62,9 +62,6 @@ int main(void) {
   if (glyphs == NULL) {
     pse();
   }
-
-  // dynamic array to keep track of text that is typed on the screen
-  uint32_t *text = NULL;
   
   // event loop with quit event state
   bool quit = false;
@@ -78,9 +75,9 @@ int main(void) {
         break;
       case SDL_EVENT_KEY_DOWN:
         if (event.key.key == SDLK_BACKSPACE) {
-          if (arrlen(text) > 0) arrdel(text, arrlen(text)-1);
+          if (arrlen(input) > 0) arrdel(input, arrlen(input)-1);
         } else {
-          arrput(text, event.key.key);
+          arrput(input, event.key.key);
         }
         break;
       }
@@ -97,7 +94,7 @@ int main(void) {
     }
 
     // render typed text
-    if (!render_text(glyphs, renderer, text)) {
+    if (!render_text(glyphs, renderer, input)) {
       pse();
     }
 
@@ -109,7 +106,7 @@ int main(void) {
 
   // cleanup
  cleanup:
-  if (text != NULL) arrfree(text);
+  if (input != NULL) arrfree(input);
   if (glyphs != NULL) free_glyphs(glyphs);
   if (renderer != NULL) SDL_DestroyRenderer(renderer);
   if (window != NULL) SDL_DestroyWindow(window);
