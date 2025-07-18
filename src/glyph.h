@@ -65,8 +65,8 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color);
  * @text: The Glyphs struct to be freed.
  *
  * This function frees a Glyphs struct by first iterating through the hash
- * map and freeing all of the textures, and then freeing the memory
- * allocated for the struct itself.
+ * map and freeing all of the textures, the hash map, and then freeing the
+ * memory allocated for the struct itself.
  */
 void free_glyphs(Glyphs *text);
 

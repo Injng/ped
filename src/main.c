@@ -1,5 +1,10 @@
 #include <stdio.h>
 
+#include <SDL3/SDL_init.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_video.h>
+#include <SDL3_ttf/SDL_ttf.h>
+
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 #include "glyph.h"
@@ -15,7 +20,6 @@
 TTF_Font *font = NULL;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
-TTF_TextEngine *text_engine = NULL;
 TTF_Text *text = NULL;
 Glyphs *glyphs = NULL;
 
@@ -105,6 +109,7 @@ int main(void) {
 
   // cleanup
  cleanup:
+  if (text != NULL) arrfree(text);
   if (glyphs != NULL) free_glyphs(glyphs);
   if (renderer != NULL) SDL_DestroyRenderer(renderer);
   if (window != NULL) SDL_DestroyWindow(window);

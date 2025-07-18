@@ -1,3 +1,9 @@
+#include <stdlib.h>
+
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_surface.h>
+#include <SDL3_ttf/SDL_ttf.h>
+
 #include "stb_ds.h"
 #include "glyph.h"
 
@@ -10,12 +16,14 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color)
   Glyphs *glyphs = malloc(sizeof(Glyphs));
   if (glyphs == NULL) {
     SDL_SetError("Failed to allocate memory for Glyphs struct");
+    free(glyphs);
     return NULL;
   }
 
   // check if font is fixed width
   if (!TTF_FontIsFixedWidth(font)) {
     SDL_SetError("Font must be fixed width");
+    free(glyphs);
     return NULL;
   }
 
@@ -23,11 +31,18 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color)
   for (int i = 48; i < GLYPHS_SIZE; i++) {
     // render a blended glyph surface
     SDL_Surface *gs = TTF_RenderGlyph_Blended(font, i, color);
-    if (gs == NULL) return NULL;
+    if (gs == NULL) {
+      free(glyphs);
+      return NULL;
+    }
 
     // create a texture from the surface
     SDL_Texture *glyph = SDL_CreateTextureFromSurface(renderer, gs);
-    if (glyph  == NULL) return NULL;
+    SDL_DestroySurface(gs);
+    if (glyph  == NULL) {
+      free(glyphs);
+      return NULL;
+    }
 
     // add to the hash map with the unicode codepoint as the key
     hmput(textures, i, glyph);
@@ -44,9 +59,11 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color)
 
 void free_glyphs(Glyphs *text)
 {
+  if (text == NULL) return;
   for (int i = 0; i < GLYPHS_SIZE; i++) {
     SDL_DestroyTexture(text->glyphs[i].value);
   }
+  hmfree(text->glyphs);
   free(text);
 }
 
