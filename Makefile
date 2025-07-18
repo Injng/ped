@@ -1,4 +1,4 @@
-CFLAGS = -std=c11 -pedantic -Wall -Wextra -g -fsanitize=address
+CFLAGS = -pedantic -Wall -Wextra -g -fsanitize=address
 LDLIBS = -lSDL3_ttf -lSDL3
 
 pedit: src/main.c
