@@ -8,6 +8,7 @@
 #include "glyph.h"
 
 #define GLYPHS_SIZE 123
+#define PADDING 100
 
 Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color)
 {
@@ -82,8 +83,8 @@ bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t *text)
   for (int i = 0; i < arrlen(text); i++) {
     // destination rectangle always starts from offest and is calculated from the start
     SDL_FRect dst = {
-      .x = 100 + glyphs->width * i,
-      .y = 100,
+      .x = PADDING + glyphs->width * i,
+      .y = PADDING,
       .w = glyphs->width,
       .h = glyphs->height
     };
