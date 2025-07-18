@@ -3,7 +3,6 @@
     "arguments": [
       "/usr/bin/cc",
       "-c",
-      "-std=c11",
       "-pedantic",
       "-Wall",
       "-Wextra",
@@ -15,6 +14,23 @@
     ],
     "directory": "/home/lnjng/Projects/dev/pedit",
     "file": "/home/lnjng/Projects/dev/pedit/src/main.c",
+    "output": "/home/lnjng/Projects/dev/pedit/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-pedantic",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-fsanitize=address",
+      "-o",
+      "main.o",
+      "src/glyph.c"
+    ],
+    "directory": "/home/lnjng/Projects/dev/pedit",
+    "file": "/home/lnjng/Projects/dev/pedit/src/glyph.c",
     "output": "/home/lnjng/Projects/dev/pedit/main.o"
   }
 ]
