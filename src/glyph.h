@@ -4,6 +4,12 @@
 #include <SDL3/SDL_surface.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+// Determines which unicode codepoint to cache textures up to for Glyphs.
+#define GLYPHS_SIZE 123
+
+// Determines the padding around the text input.
+#define PADDING 100
+
 /**
  * struct Encoding - Defines a key-value pair with the key as the unicode
  * codepoint and the value as the glyph texture.

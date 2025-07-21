@@ -7,9 +7,6 @@
 #include "stb_ds.h"
 #include "glyph.h"
 
-#define GLYPHS_SIZE 123
-#define PADDING 100
-
 Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color)
 {
   // initialize hash map of glyphs and allocate memory for our glyphs struct
