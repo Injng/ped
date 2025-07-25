@@ -8,6 +8,7 @@
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 #include "glyph.h"
+#include "rope.h"
 
 #define INIT_WIDTH 1080
 #define INIT_HEIGHT 720
@@ -22,8 +23,35 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 Glyphs *glyphs = NULL;
 uint32_t *input = NULL;
+RopeNode *rope = NULL;
 
-int main(void) {
+bool delete_rope(void) {
+  if (rope == NULL) return true;
+  arrdel(input, arrlen(input) - 1);
+  rope_free(rope);
+  rope = rope_build(input, arrlen(input));
+  if (rope == NULL) return false;
+  return true;
+}
+
+bool insert_rope(uint32_t c) {
+  if (rope == NULL) {
+    rope = rope_build(&c, 1);
+    if (rope == NULL) return false;
+  } else {
+    if (input != NULL) arrfree(input);
+    input = rope_text(rope);
+    if (input == NULL) return false;
+    arrput(input, c);
+    rope_free(rope);
+    rope = rope_build(input, arrlen(input));
+    if (rope == NULL) return false;
+  }
+  return true;
+}
+
+int main(void)
+{
   // code to return from the program with
   int code = 0; 
   
@@ -75,9 +103,13 @@ int main(void) {
         break;
       case SDL_EVENT_KEY_DOWN:
         if (event.key.key == SDLK_BACKSPACE) {
-          if (arrlen(input) > 0) arrdel(input, arrlen(input)-1);
+          if (!delete_rope()) {
+            pse();
+          }
         } else {
-          arrput(input, event.key.key);
+          if (!insert_rope(event.key.key)) {
+            pse();
+          }
         }
         break;
       }
@@ -94,6 +126,8 @@ int main(void) {
     }
 
     // render typed text
+    if (input != NULL) arrfree(input);
+    input = rope_text(rope);
     if (!render_text(glyphs, renderer, input)) {
       pse();
     }
@@ -106,6 +140,7 @@ int main(void) {
 
   // cleanup
  cleanup:
+  if (rope != NULL) rope_free(rope);
   if (input != NULL) arrfree(input);
   if (glyphs != NULL) free_glyphs(glyphs);
   if (renderer != NULL) SDL_DestroyRenderer(renderer);
