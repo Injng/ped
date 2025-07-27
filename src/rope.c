@@ -389,3 +389,33 @@ RopeNode **rope_split(RopeNode *root, int index)
   return roots;
 }
 
+RopeNode *rope_insert(RopeNode *root, uint32_t c, int idx)
+{
+  // allocate memory for new node
+  RopeNode *insert_node = malloc(sizeof(RopeNode));
+  if (insert_node == NULL) {
+    SDL_SetError("Failed to allocate memory for node");
+    return NULL;
+  }
+
+  // allocate memory for text value
+  uint32_t *text = malloc(sizeof(uint32_t));
+  if (text == NULL) {
+    SDL_SetError("Failed to allocate memory for text");
+    free(insert_node);
+    return NULL;
+  }
+  *text = c;
+
+  // set the new node's properties
+  rope_set(insert_node, 1, text, NULL, NULL, NULL);
+
+  // split the rope at the index
+  RopeNode **roots = rope_split(root, idx);
+
+  // concatenate (left + insert node + right)
+  RopeNode *new_root = rope_concat(roots[0], insert_node);
+  new_root = rope_concat(new_root, roots[1]);
+  return new_root;
+}
+
