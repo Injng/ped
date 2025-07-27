@@ -203,8 +203,8 @@ RopeNode *rope_concat(RopeNode *first, RopeNode *second)
 
   // set two nodes to be children of new root node
   rope_set(root, rope_length(first), NULL, NULL, first, second);
-  first->parent = root;
-  second->parent = root;
+  if (first != NULL) first->parent = root;
+  if (second != NULL) second->parent = root;
   return root;
 }
 
