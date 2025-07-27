@@ -39,13 +39,14 @@ bool insert_rope(uint32_t c) {
     rope = rope_build(&c, 1);
     if (rope == NULL) return false;
   } else {
-    if (input != NULL) arrfree(input);
+    RopeNode *new_rope = rope_insert(rope, c, arrlen(input) - 1);
+    if (new_rope == NULL) return false;
+    rope = new_rope;
+    if (input != NULL) {
+      arrfree(input);
+      input = NULL;
+    }
     input = rope_text(rope);
-    if (input == NULL) return false;
-    arrput(input, c);
-    rope_free(rope);
-    rope = rope_build(input, arrlen(input));
-    if (rope == NULL) return false;
   }
   return true;
 }

@@ -40,4 +40,10 @@ RopeNode *rope_concat(RopeNode *first, RopeNode *second);
 
 RopeIndex rope_index(RopeNode *root, int index);
 
+RopeNode *rope_rebuild(RopeNode *root);
+
+RopeNode **rope_split(RopeNode *root, int index);
+
+RopeNode *rope_insert(RopeNode *root, uint32_t c, int idx);
+
 #endif // ROPE_H
