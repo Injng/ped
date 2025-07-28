@@ -423,6 +423,7 @@ RopeNode *rope_insert(RopeNode *root, uint32_t c, int idx)
   // concatenate (left + insert node + right)
   RopeNode *new_root = rope_concat(roots[0], insert_node);
   new_root = rope_concat(new_root, roots[1]);
+  free(roots);
   return new_root;
 }
 
