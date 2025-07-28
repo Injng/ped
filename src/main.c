@@ -23,32 +23,41 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 Glyphs *glyphs = NULL;
 uint32_t *input = NULL;
-RopeNode *rope = NULL;
+RopeNode **ropes = NULL;
 
 bool delete_rope(void) {
-  if (rope == NULL) return true;
+  if (arrlen(ropes) == 0) return true;
   arrdel(input, arrlen(input) - 1);
-  rope_free(rope);
-  rope = rope_build(input, arrlen(input));
+  RopeNode *rope = rope_build(input, arrlen(input));
   if (rope == NULL) return false;
+  arrput(ropes, rope);
   return true;
 }
 
 bool insert_rope(uint32_t c) {
-  if (rope == NULL) {
-    rope = rope_build(&c, 1);
+  if (arrlen(ropes) == 0) {
+    RopeNode *rope = rope_build(&c, 1);
     if (rope == NULL) return false;
+    arrput(ropes, rope);
   } else {
-    RopeNode *new_rope = rope_insert(rope, c, arrlen(input) - 1);
+    RopeNode *new_rope = rope_insert(ropes[arrlen(ropes) - 1], c, arrlen(input) - 1);
     if (new_rope == NULL) return false;
-    rope = new_rope;
+    RopeNode *rope = new_rope;
     if (input != NULL) {
       arrfree(input);
       input = NULL;
     }
     input = rope_text(rope);
+    arrput(ropes, rope);
   }
   return true;
+}
+
+void free_ropes(void) {
+  for (int i = 0; i < arrlen(ropes); i++) {
+    rope_free(ropes[i]);
+  }
+  arrfree(ropes);
 }
 
 int main(void)
@@ -128,7 +137,7 @@ int main(void)
 
     // render typed text
     if (input != NULL) arrfree(input);
-    input = rope_text(rope);
+    if (arrlen(ropes) > 0) input = rope_text(ropes[arrlen(ropes) - 1]);
     if (!render_text(glyphs, renderer, input)) {
       pse();
     }
@@ -141,7 +150,7 @@ int main(void)
 
   // cleanup
  cleanup:
-  if (rope != NULL) rope_free(rope);
+  if (ropes != NULL) free_ropes();
   if (input != NULL) arrfree(input);
   if (glyphs != NULL) free_glyphs(glyphs);
   if (renderer != NULL) SDL_DestroyRenderer(renderer);
