@@ -309,11 +309,17 @@ RopeNode **rope_split(RopeNode *root, int index)
   
   // create state variable for previously created new node
   RopeNode *new = malloc(sizeof(RopeNode));
+  uint32_t *new_text = malloc(prev->weight * sizeof(uint32_t));
   if (new == NULL) {
     SDL_SetError("Failed to allocate memory for node");
     return NULL;
   }
-  rope_set(new, prev->weight, prev->value, NULL, NULL, NULL);
+  if (new_text == NULL) {
+    SDL_SetError("Failed to allocate memory for text");
+    return NULL;
+  }
+  memcpy(new_text, prev->value, prev->weight * sizeof(uint32_t));
+  rope_set(new, prev->weight, new_text, NULL, NULL, NULL);
 
   // create pointer that points to the current node
   RopeNode *ptr = prev->parent;
@@ -336,6 +342,7 @@ RopeNode **rope_split(RopeNode *root, int index)
       RopeNode *new_left = rope_rebuild(ptr->left);
       if (new_left == NULL) return NULL;
       rope_set(node, rope_length(new_left), NULL, NULL, new_left, new);
+      new_left->parent = node;
     }
 
     // otherwise if there is another tree to the right, split it off
