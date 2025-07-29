@@ -76,9 +76,20 @@ RopeNode *rope_merge(RopeNode **nodes, int length)
 
 RopeNode *rope_build(uint32_t *text, int length)
 {
-  // there must be text
-  if (length <= 0) {
-    SDL_SetError("Cannot build a rope without text");
+  // handle empty case
+  if (length == 0) {
+    RopeNode *empty_node = malloc(sizeof(RopeNode));
+    if (empty_node == NULL) {
+      SDL_SetError("Failed to allocate memory for empty node");
+      return NULL;
+    }
+    rope_set(empty_node, 0, NULL, NULL, NULL, NULL);
+    return empty_node;
+  }
+  
+  // guard against negative length
+  if (length < 0) {
+    SDL_SetError("Cannot build a rope with negative length");
     return NULL;
   }
 
@@ -125,10 +136,12 @@ RopeNode *rope_build(uint32_t *text, int length)
   // handle cleanup if memory allocation fails
  cleanup:
   SDL_SetError("Failed to allocate memory in rope_build");
-  for (int i = 0; i < new_length; i++) {
-    free(new_nodes[i]);
+  if (new_nodes != NULL) {
+    for (int i = 0; i < new_length; i++) {
+      rope_free(new_nodes[i]);
+    }
+    free(new_nodes);
   }
-  free(new_nodes);
   free(split_text);
   return NULL;
 }
@@ -152,6 +165,9 @@ RopeNode **rope_collect(RopeNode *root)
     if (curr->left != NULL) {
       arrput(nodes, curr);
       curr = curr->left;
+    } else if (curr->right != NULL) {
+      arrput(nodes, curr);
+      curr = curr->right;
     }
 
     // this is a leaf
