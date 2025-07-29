@@ -27,6 +27,7 @@ RopeNode **ropes = NULL;
 
 bool delete_rope(void) {
   if (arrlen(ropes) == 0) return true;
+  if (arrlen(input) == 0) return true;
   arrdel(input, arrlen(input) - 1);
   RopeNode *rope = rope_build(input, arrlen(input));
   if (rope == NULL) return false;
@@ -35,20 +36,19 @@ bool delete_rope(void) {
 }
 
 bool insert_rope(uint32_t c) {
-  if (arrlen(ropes) == 0) {
+  if (arrlen(input) == 0) {
     RopeNode *rope = rope_build(&c, 1);
     if (rope == NULL) return false;
     arrput(ropes, rope);
   } else {
     RopeNode *new_rope = rope_insert(ropes[arrlen(ropes) - 1], c, arrlen(input) - 1);
     if (new_rope == NULL) return false;
-    RopeNode *rope = new_rope;
     if (input != NULL) {
       arrfree(input);
       input = NULL;
     }
-    input = rope_text(rope);
-    arrput(ropes, rope);
+    input = rope_text(new_rope);
+    arrput(ropes, new_rope);
   }
   return true;
 }
