@@ -150,12 +150,12 @@ int main(void)
 
   // cleanup
  cleanup:
-  if (ropes != NULL) free_ropes();
-  if (input != NULL) arrfree(input);
-  if (glyphs != NULL) free_glyphs(glyphs);
-  if (renderer != NULL) SDL_DestroyRenderer(renderer);
-  if (window != NULL) SDL_DestroyWindow(window);
-  if (font != NULL) TTF_CloseFont(font);
+  free_ropes();
+  arrfree(input);
+  free_glyphs(glyphs);
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  TTF_CloseFont(font);
   TTF_Quit();
   SDL_Quit();
   
