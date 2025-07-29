@@ -30,12 +30,22 @@ RopeNode *rope_merge(RopeNode **nodes, int length)
   // calculate length of next level of nodes and allocate memory for array
   int new_length = (length + 1)/ 2;
   RopeNode **new_nodes = malloc(new_length * sizeof(RopeNode*));
+  if (new_nodes == NULL) {
+    SDL_SetError("Failed to allocate memory in rope_merge");
+    return NULL;
+  }
+
+  // null initialize array of new nodes
+  for (int i = 0; i < new_length; i++) {
+    new_nodes[i] = NULL;
+  }
 
   // iterate through pairs of nodes, creating parent nodes
   for (int i = 0; i < length / 2; i++) {
     RopeNode* left = nodes[2 * i];
     RopeNode* right = nodes[2 * i + 1];
     new_nodes[i] = malloc(sizeof(RopeNode));
+    if (new_nodes == NULL) goto cleanup;
     rope_set(new_nodes[i], rope_length(left), NULL, NULL, left, right);
     left->parent = new_nodes[i];
     right->parent = new_nodes[i];
@@ -45,12 +55,23 @@ RopeNode *rope_merge(RopeNode **nodes, int length)
   if (length % 2 != 0) {
     RopeNode* left = nodes[length - 1];
     new_nodes[new_length - 1] = malloc(sizeof(RopeNode));
+    if (new_nodes[new_length - 1] == NULL) goto cleanup;
     rope_set(new_nodes[new_length - 1], rope_length(left), NULL, NULL, left, NULL);
     left->parent = new_nodes[new_length - 1];
   }
 
   free(nodes);
   return rope_merge(new_nodes, new_length);
+
+  // cleanup new nodes if memory allocation fails
+ cleanup:
+  SDL_SetError("Failed to allocate memory in rope_merge");
+  for (int i = 0; i < new_length; i++) {
+    free(new_nodes[i]);
+  }
+  free(new_nodes);
+  free(nodes);
+  return NULL;
 }
 
 RopeNode *rope_build(uint32_t *text, int length)
@@ -65,9 +86,17 @@ RopeNode *rope_build(uint32_t *text, int length)
   int new_length = (length + LEAF_WEIGHT - 1) / LEAF_WEIGHT;
   RopeNode **new_nodes = malloc(new_length * sizeof(RopeNode*));
   if (new_nodes == NULL) {
-    SDL_SetError("Failed to allocate memory for nodes");
+    SDL_SetError("Failed to allocate memory in rope_build");
     return NULL;
   }
+
+  // null initialize array of new nodes
+  for (int i = 0; i < new_length; i++) {
+    new_nodes[i] = NULL;
+  }
+
+  // memory pointer for each leaf's text
+  uint32_t *split_text = NULL;
 
   // iterate through text and create new leaves
   for (int i = 0; i < new_length; i++) {
@@ -79,17 +108,11 @@ RopeNode *rope_build(uint32_t *text, int length)
 
     // allocate new rope node
     new_nodes[i] = malloc(sizeof(RopeNode));
-    if (new_nodes[i] == NULL) {
-      SDL_SetError("Failed to allocate memory for node");
-      return NULL;
-    }
+    if (new_nodes[i] == NULL) goto cleanup;
 
     // allocate memory for the leaf's text
-    uint32_t *split_text = malloc(weight * sizeof(uint32_t));
-    if (split_text == NULL) {
-      SDL_SetError("Failed to allocate memory for leaf text");
-      return NULL;
-    }
+    split_text = malloc(weight * sizeof(uint32_t));
+    if (split_text == NULL) goto cleanup;
 
     // copy text into node and set properties
     memcpy(split_text, &text[LEAF_WEIGHT * i], weight * sizeof(uint32_t));
@@ -98,6 +121,16 @@ RopeNode *rope_build(uint32_t *text, int length)
 
   // merge all of the leaves into a rope tree recursively
   return rope_merge(new_nodes, new_length);
+
+  // handle cleanup if memory allocation fails
+ cleanup:
+  SDL_SetError("Failed to allocate memory in rope_build");
+  for (int i = 0; i < new_length; i++) {
+    free(new_nodes[i]);
+  }
+  free(new_nodes);
+  free(split_text);
+  return NULL;
 }
 
 RopeNode **rope_collect(RopeNode *root)
@@ -227,34 +260,44 @@ RopeNode *rope_rebuild(RopeNode *root)
   // return if at the end of the tree
   if (root == NULL) return NULL;
 
+  // all heap-allocated pointers here
+  RopeNode *left = NULL;              // new root for the left subtree
+  RopeNode *right = NULL;             // new root for the right subtree
+  RopeNode *new_node = NULL;          // new copy of the node
+  uint32_t *new_text = NULL;          // text for new leaves
+
   // recursively build the left and right subtrees
-  RopeNode *left = rope_rebuild(root->left);
-  RopeNode *right = rope_rebuild(root->right);
+  left = rope_rebuild(root->left);
+  if (root->left != NULL && left == NULL) goto cleanup;
+  right = rope_rebuild(root->right);
+  if (root->right != NULL && right == NULL) goto cleanup;
 
   // allocate memory for new root node
-  RopeNode *node = malloc(sizeof(RopeNode));
-  if (node == NULL) {
-    SDL_SetError("Failed to allocate memory for node");
-    return NULL;
-  }
+  new_node = malloc(sizeof(RopeNode));
+  if (new_node == NULL) goto cleanup;
 
   // allocate memory for new text value if it is a leaf
-  uint32_t *new_text = NULL;
   if (root->value != NULL) {
     new_text = malloc(root->weight * sizeof(uint32_t));
-    if (new_text == NULL) {
-      SDL_SetError("Failed to allocate memory for text");
-      return NULL;
-    }
+    if (new_text == NULL) goto cleanup;
     memcpy(new_text, root->value, root->weight * sizeof(uint32_t));
   }
 
   // update properties on new nodes
-  rope_set(node, root->weight, new_text, root->parent, left, right);
-  if (left != NULL) left->parent = node;
-  if (right != NULL) right->parent = node;
+  rope_set(new_node, root->weight, new_text, root->parent, left, right);
+  if (left != NULL) left->parent = new_node;
+  if (right != NULL) right->parent = new_node;
 
-  return node;
+  return new_node;
+
+  // handle cleanup if memory allocation fails
+ cleanup:
+  SDL_SetError("Failed to allocate memory in rope_rebuild");
+  rope_free(left);
+  rope_free(right);
+  free(new_node);
+  free(new_text);
+  return NULL;
 }
 
 RopeNode **rope_split(RopeNode *root, int index)

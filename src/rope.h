@@ -70,7 +70,8 @@ void rope_set(RopeNode *node, int w, uint32_t *val, RopeNode *par, RopeNode *l,
  *
  * This function takes in an array of rope nodes and recursively merges
  * them until a rope binary tree is formed. It then returns the root of the
- * rope, and will free the passed in node array itself.
+ * rope, and will free the passed in node array itself. This function returns
+ * NULL if it fails. For error information, use SDL_GetError().
  */
 RopeNode *rope_merge(RopeNode **nodes, int length);
 
