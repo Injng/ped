@@ -197,7 +197,7 @@ RopeNode *rope_concat(RopeNode *first, RopeNode *second)
   // allocate memory for new root node
   RopeNode *root = malloc(sizeof(RopeNode));
   if (root == NULL) {
-    SDL_SetError("Failed to allocate memoery for node");
+    SDL_SetError("Failed to allocate memory for node");
     return NULL;
   }
 
@@ -265,32 +265,41 @@ RopeNode **rope_split(RopeNode *root, int index)
     return NULL;
   }
 
+  // all heap-allocated pointers here
+  RopeNode *left = NULL;                 // new left leaf for mid-node splits
+  RopeNode *right = NULL;                // new right leaf for mid-node splits
+  uint32_t *left_text = NULL;            // text for new left leaf
+  uint32_t *right_text = NULL;           // text for new right leaf
+  RopeNode *prev_new = NULL;             // state for new node created in last iteration
+  uint32_t *new_text = NULL;             // text for prev_new
+  RopeNode **split_nodes = NULL;         // dynamic array of new split nodes
+  RopeNode *new_node = NULL;             // new node created in each iteration
+  RopeNode *new_left = NULL;             // new root node for left subtree
+  RopeNode *new_right = NULL;            // new root node for right subtree
+  RopeNode **new_roots = NULL;           // array of the roots of the two ropes after split
+  RopeNode *split_right = NULL;          // the root of the right rope after split
+
   // obtain information about where the split point is located
   RopeIndex idx = rope_index(root, index);
   RopeNode *prev = idx.node;
 
   // if split point is in the middle of a leaf, create two new leaves
   if (idx.n_idx < idx.node->weight - 1) {
-    // allocate memory for left and right leaves
-    RopeNode *left = malloc(sizeof(RopeNode));
-    RopeNode *right = malloc(sizeof(RopeNode));
-    if (left == NULL || right == NULL) {
-      SDL_SetError("Failed to allocate memory for node");
-      return NULL;
-    }
-
     // calculate weights for the leaves
     int l_weight = idx.n_idx + 1;
     int r_weight = idx.node->weight - idx.n_idx - 1;
+    
+    // allocate memory for all of the nodes and text values
+    left = malloc(sizeof(RopeNode));
+    right = malloc(sizeof(RopeNode));
+    left_text = malloc(l_weight * sizeof(uint32_t));
+    right_text = malloc(r_weight * sizeof(uint32_t));
 
-    // allocate memory for the text values for the leaves
-    uint32_t *left_text = malloc(l_weight * sizeof(uint32_t));
-    uint32_t *right_text = malloc(r_weight * sizeof(uint32_t));
-    if (left_text == NULL || right_text == NULL) {
-      SDL_SetError("Failed to allocate memory for text");
-      return NULL;
+    // handle memory allocation errors
+    if (left == NULL || right == NULL || left_text == NULL || right_text == NULL) {
+      goto cleanup;
     }
-
+    
     // copy the split text values from the parent node to the leaves
     memcpy(left_text, idx.node->value, l_weight * sizeof(uint32_t));
     memcpy(right_text, idx.node->value+idx.n_idx+1, r_weight * sizeof(uint32_t));
@@ -298,6 +307,8 @@ RopeNode **rope_split(RopeNode *root, int index)
     // set leaf properties
     rope_set(left, l_weight, left_text, idx.node, NULL, NULL);
     rope_set(right, r_weight, right_text, idx.node, NULL, NULL);
+    left_text = NULL;
+    right_text = NULL;
 
     // update parent node to point to the two leaves
     free(idx.node->value);
@@ -307,93 +318,124 @@ RopeNode **rope_split(RopeNode *root, int index)
     prev = idx.node->left;
   }
   
-  // create state variable for previously created new node
-  RopeNode *new = malloc(sizeof(RopeNode));
-  uint32_t *new_text = malloc(prev->weight * sizeof(uint32_t));
-  if (new == NULL) {
-    SDL_SetError("Failed to allocate memory for node");
-    return NULL;
+  // allocate memory for state variable of previously created node
+  prev_new = malloc(sizeof(RopeNode));
+  new_text = malloc(prev->weight * sizeof(uint32_t));
+  if (prev_new == NULL || new_text == NULL) {
+    goto cleanup;
   }
-  if (new_text == NULL) {
-    SDL_SetError("Failed to allocate memory for text");
-    return NULL;
-  }
+
+  // copy text into prev_new and set initial properties
   memcpy(new_text, prev->value, prev->weight * sizeof(uint32_t));
-  rope_set(new, prev->weight, new_text, NULL, NULL, NULL);
+  rope_set(prev_new, prev->weight, new_text, NULL, NULL, NULL);
+  new_text = NULL;
 
-  // create pointer that points to the current node
+  // set pointer that points to the current node
   RopeNode *ptr = prev->parent;
-
-  // dynamic array to keep track of new split nodes
-  RopeNode **nodes = NULL;
 
   // split nodes while the pointer is not at the head of the tree
   while (ptr != NULL) {
     // allocate memory for new node
-    RopeNode *node = malloc(sizeof(RopeNode));
-    if (node == NULL) {
-      SDL_SetError("Failed to allocate node");
-      return NULL;
+    new_node = malloc(sizeof(RopeNode));
+    if (new_node == NULL) {
+      goto cleanup;
     }
 
     // if came from the right, create a new node with same info
     if (ptr->right == prev) {
       // make new nodes for left subtree
-      RopeNode *new_left = rope_rebuild(ptr->left);
-      if (new_left == NULL) return NULL;
-      rope_set(node, rope_length(new_left), NULL, NULL, new_left, new);
-      new_left->parent = node;
+      new_left = rope_rebuild(ptr->left);
+      if (new_left == NULL) goto cleanup;
+      rope_set(new_node, rope_length(new_left), NULL, NULL, new_left, prev_new);
+      new_left->parent = new_node;
+      new_left = NULL;
     }
 
     // otherwise if there is another tree to the right, split it off
     else if (ptr->right != NULL) {
-      rope_set(node, rope_length(new), NULL, NULL, new, NULL);
-      RopeNode *new_right = rope_rebuild(ptr->right);
-      if (new_right == NULL) return NULL;
+      rope_set(new_node, rope_length(prev_new), NULL, NULL, prev_new, NULL);
+      new_right = rope_rebuild(ptr->right);
+      if (new_right == NULL) goto cleanup;
       new_right->parent = NULL;
-      arrput(nodes, new_right);
+      arrput(split_nodes, new_right);
+      new_right = NULL;
     }
 
     // otherwise, just create a new node with same info
     else {
-      rope_set(node, rope_length(new), NULL, NULL, new, NULL);
+      rope_set(new_node, rope_length(prev_new), NULL, NULL, prev_new, NULL);
     }
 
     // update state
-    new->parent = node;
-    new = node;
+    prev_new->parent = new_node;
+    prev_new = new_node;
     prev = ptr;
     ptr = ptr->parent;
+    new_node = NULL;
   }
 
-  // allocate memory for the two root nodes
-  RopeNode **roots = malloc(2 * sizeof(RopeNode*));
+  // allocate memory for the two new root nodes
+  new_roots = malloc(2 * sizeof(RopeNode*));
+  if (new_roots == NULL) {
+    goto cleanup;
+  }
 
   // if no split nodes, exit early
-  if (arrlen(nodes) == 0) {
-    roots[0] = new;
-    roots[1] = NULL;
-    return roots;
+  if (arrlen(split_nodes) == 0) {
+    new_roots[0] = prev_new;
+    new_roots[1] = NULL;
+    return new_roots;
   }
 
   // if only one split node, set second root node to that and return
-  if (arrlen(nodes) == 1) {
-    roots[0] = new;
-    roots[1] = nodes[0];
-    return roots;
+  if (arrlen(split_nodes) == 1) {
+    new_roots[0] = prev_new;
+    new_roots[1] = split_nodes[0];
+    return new_roots;
   }
 
   // concat all of the split nodes into another tree
-  RopeNode *right = nodes[0];
-  for (int i = 1; i < arrlen(nodes); i++) {
-    right = rope_concat(right, nodes[i]);
-    if (right == NULL) return NULL;
+  split_right = split_nodes[0];
+  split_nodes[0] = NULL;
+  for (int i = 1; i < arrlen(split_nodes); i++) {
+    split_right = rope_concat(split_right, split_nodes[i]);
+    if (split_right == NULL) goto cleanup;
+    split_nodes[i] = NULL;
   }
 
   // set roots and return
-  roots[0] = new;
-  roots[1] = right;
-  return roots;
+  new_roots[0] = prev_new;
+  new_roots[1] = split_right;
+  arrfree(split_nodes);
+  return new_roots;
+
+  // cleanup section if memory allocation error occurs
+ cleanup:
+  SDL_SetError("Failed to allocate memory during rope_split");
+
+  // free any simple allocations
+  free(left);
+  free(right);
+  free(left_text);
+  free(right_text);
+  free(new_text);
+  free(new_node);
+  free(new_roots);
+
+  // free any new ropes
+  rope_free(prev_new);
+  rope_free(new_left);
+  rope_free(new_right);
+  rope_free(split_right);
+
+  // free the array of newly created split nodes if necessary
+  if (split_nodes != NULL) {
+    for (int i = 0; i < arrlen(split_nodes); i++) {
+      rope_free(split_nodes[i]);
+    }
+  }
+  arrfree(split_nodes);
+  return NULL;
 }
 
 RopeNode *rope_insert(RopeNode *root, uint32_t c, int idx)
