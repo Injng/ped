@@ -122,7 +122,7 @@ uint32_t *rope_text(RopeNode *root);
  */
 void rope_free(RopeNode *root);
 
-/*
+/**
  * rope_length() - Returns the length of the text in the rope.
  *
  * @root: The root node of the rope.
@@ -133,7 +133,7 @@ void rope_free(RopeNode *root);
  */
 int rope_length(RopeNode *root);
 
-/*
+/**
  * rope_height() - Returns the height of the rope.
  *
  * @root: The root node of the rope.
@@ -145,7 +145,7 @@ int rope_length(RopeNode *root);
  */
 int rope_height(RopeNode *root, int curr_height);
 
-/*
+/**
  * rope_concat() - Concatenates two ropes together.
  *
  * @first: The root node of the first rope.
@@ -157,7 +157,7 @@ int rope_height(RopeNode *root, int curr_height);
  */
 RopeNode *rope_concat(RopeNode *first, RopeNode *second);
 
-/*
+/**
  * rope_index() - Indexes the rope and returns relevant information.
  *
  * @root: The root node of the rope.
@@ -172,7 +172,7 @@ RopeNode *rope_concat(RopeNode *first, RopeNode *second);
  */
 RopeIndex rope_index(RopeNode *root, int index);
 
-/*
+/**
  * rope_rebuild() - Rebuilds a rope by replacing it with new nodes.
  *
  * @root: The root node of the rope.
@@ -185,7 +185,7 @@ RopeIndex rope_index(RopeNode *root, int index);
  */
 RopeNode *rope_rebuild(RopeNode *root);
 
-/*
+/**
  * rope_split() - Splits a rope into two ropes at the given index.
  *
  * @root: The root node of the rope.
@@ -200,7 +200,7 @@ RopeNode *rope_rebuild(RopeNode *root);
  */
 RopeNode **rope_split(RopeNode *root, int index);
 
-/*
+/**
  * rope_insert() - Inserts a character into a rope at the given index.
  *
  * @root: The root node of the rope.
