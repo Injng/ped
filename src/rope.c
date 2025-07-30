@@ -338,6 +338,15 @@ RopeNode **rope_split(RopeNode *root, int index)
   RopeNode **new_roots = NULL;           // array of the roots of the two ropes after split
   RopeNode *split_right = NULL;          // the root of the right rope after split
 
+  // if index is -1, return the full rope
+  if (index == -1) {
+    new_roots = malloc(2 * sizeof(RopeNode*));
+    if (new_roots == NULL) goto cleanup;
+    new_roots[0] = NULL;
+    new_roots[1] = root;
+    return new_roots;
+  }
+
   // obtain information about where the split point is located
   RopeIndex idx = rope_index(root, index);
   RopeNode *prev = idx.node;
