@@ -10,9 +10,9 @@
  * struct RopeNode - Defines a node within a rope.
  *
  * @weight: The weight of the rope node.
+ * @ref_count: The number of references to this node.
  * @value: An array of unicode codepoints representing text, if the node is a
  * leaf
- * @parent: The parent of the node.
  * @left: The left child of the node.
  * @right: The right child of the node.
  *
@@ -20,12 +20,13 @@
  * a line of text. The weight is calculated as the total length of all the text
  * within the left subtree of the node. If the node is a leaf, that means it
  * contains a value, which is that leaf's segment of text represented as an
- * array of unicode codepoints.
+ * array of unicode codepoints. The node is reference counted and will be freed
+ * once the number of references to it reaches zero.
  */
 typedef struct RopeNode {
   int weight;
+  int ref_count;
   uint32_t *value;
-  struct RopeNode *parent;
   struct RopeNode *left;
   struct RopeNode *right;
 } RopeNode;
@@ -195,7 +196,9 @@ RopeNode *rope_rebuild(RopeNode *root);
  * pointed to by the index. If the index points to a character in the
  * middle of a leaf node, two new leaf nodes will be created. This function
  * returns an array consisting of two elements, pointers to the two new
- * split ropes. This function returns NULL if it fails. For error information,
+ * split ropes. It is guaranteed that if the array is not NULL, then the values
+ * inside of the array will not be NULL. Empty ropes will be created with
+ * rope_build(). This function returns NULL if it fails. For error information,
  * use SDL_GetError().
  */
 RopeNode **rope_split(RopeNode *root, int index);
@@ -215,5 +218,7 @@ RopeNode **rope_split(RopeNode *root, int index);
  * error information, use SDL_GetError().
  */
 RopeNode *rope_insert(RopeNode *root, uint32_t c, int idx);
+
+RopeNode *rope_delete(RopeNode *root, int idx);
 
 #endif // ROPE_H
