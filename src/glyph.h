@@ -77,6 +77,16 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color);
 void free_glyphs(Glyphs *text);
 
 /**
+ * validate_glyphs() - Validates if a character is cached inside of the Glyphs.
+ *
+ * @c: The codepoint to check.
+ *
+ * This function ensures that the character being added to the memory is a
+ * valid text character that is used inside of the glyphs system.
+ */
+bool validate_glyphs(uint32_t c);
+
+/**
  * render_text() - Uses a populated Glyphs struct to render text.
  *
  * @glyphs: The Glyphs struct to be used.
