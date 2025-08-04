@@ -280,6 +280,19 @@ RopeNode **rope_split(RopeNode *root, int index)
   RopeNode **new_roots = NULL;          // array of the roots of the two ropes after split
   uint32_t *text_left = NULL;           // text to the left of the split in the leaf
   uint32_t *text_right = NULL;          // text to the right of the split in the leaf
+
+  // if index is -1, return whole rope as right tree
+  if (index == -1) {
+    // allocate memory for new root pointers
+    new_roots = malloc(2 * sizeof(RopeNode*));
+    if (new_roots == NULL) goto cleanup;
+    
+    new_roots[0] = rope_build(NULL, 0);
+    if (new_roots[0] == NULL) goto cleanup;
+    new_roots[1] = root;
+    root->ref_count++;
+    return new_roots;
+  }
   
   // base case: node is leaf
   if (root->left == NULL && root->right == NULL) {

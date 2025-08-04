@@ -49,5 +49,22 @@
     "directory": "/home/lnjng/Projects/dev/pedit",
     "file": "/home/lnjng/Projects/dev/pedit/src/rope.c",
     "output": "/home/lnjng/Projects/dev/pedit/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-pedantic",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-fsanitize=address",
+      "-o",
+      "main.o",
+      "src/buffer.c"
+    ],
+    "directory": "/home/lnjng/Projects/dev/pedit",
+    "file": "/home/lnjng/Projects/dev/pedit/src/buffer.c",
+    "output": "/home/lnjng/Projects/dev/pedit/main.o"
   }
 ]

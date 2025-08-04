@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include <SDL3/SDL_init.h>
@@ -7,6 +9,7 @@
 
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
+#include "buffer.h"
 #include "glyph.h"
 #include "rope.h"
 
@@ -22,44 +25,7 @@ TTF_Font *font = NULL;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 Glyphs *glyphs = NULL;
-uint32_t *input = NULL;
-RopeNode **ropes = NULL;
-
-bool delete_rope(void) {
-  if (arrlen(ropes) == 0) return true;
-  if (arrlen(input) == 0) return true;
-  RopeNode *rope = rope_delete(ropes[arrlen(ropes) - 1], arrlen(input) - 1);
-  if (rope == NULL) return false;
-  arrput(ropes, rope);
-  return true;
-}
-
-bool insert_rope(uint32_t c) {
-  if (!validate_glyphs(c)) return true;
-  
-  if (arrlen(input) == 0) {
-    RopeNode *rope = rope_build(&c, 1);
-    if (rope == NULL) return false;
-    arrput(ropes, rope);
-  } else {
-    RopeNode *new_rope = rope_insert(ropes[arrlen(ropes) - 1], c, arrlen(input) - 1);
-    if (new_rope == NULL) return false;
-    if (input != NULL) {
-      arrfree(input);
-      input = NULL;
-    }
-    input = rope_text(new_rope);
-    arrput(ropes, new_rope);
-  }
-  return true;
-}
-
-void free_ropes(void) {
-  for (int i = 0; i < arrlen(ropes); i++) {
-    rope_deref(ropes[i]);
-  }
-  arrfree(ropes);
-}
+Buffer *buffer = NULL;
 
 int main(void)
 {
@@ -101,6 +67,16 @@ int main(void)
   if (glyphs == NULL) {
     pse();
   }
+
+  // initialize the buffer
+  buffer = buffer_init();
+  if (buffer == NULL) {
+    pse();
+  }
+
+  // keep track of what line and index the user is on
+  int line = 0;
+  int idx = -1;
   
   // event loop with quit event state
   bool quit = false;
@@ -113,14 +89,16 @@ int main(void)
         quit = true;
         break;
       case SDL_EVENT_KEY_DOWN:
-        if (event.key.key == SDLK_BACKSPACE) {
-          if (!delete_rope()) {
+        if (event.key.key == SDLK_BACKSPACE && idx > -1) {
+          if (!buffer_delete(buffer, line, idx)) {
             pse();
           }
-        } else {
-          if (!insert_rope(event.key.key)) {
+          idx--;
+        } else if (validate_glyphs(event.key.key)) {
+          if (!buffer_insert(buffer, line, idx, event.key.key)) {
             pse();
           }
+          idx++;
         }
         break;
       }
@@ -136,13 +114,12 @@ int main(void)
       pse();
     }
 
-    // render typed text
-    if (input != NULL) arrfree(input);
-    input = NULL;
-    if (arrlen(ropes) > 0) input = rope_text(ropes[arrlen(ropes) - 1]);
+    // render the typed text
+    uint32_t *input = buffer_text(buffer, line);
     if (!render_text(glyphs, renderer, input)) {
       pse();
     }
+    arrfree(input);
 
     // present the screen
     if (!SDL_RenderPresent(renderer)) {
@@ -152,8 +129,7 @@ int main(void)
 
   // cleanup
  cleanup:
-  free_ropes();
-  arrfree(input);
+  buffer_free(buffer);
   free_glyphs(glyphs);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
