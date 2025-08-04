@@ -53,15 +53,16 @@ typedef struct RopeIndex {
  *
  * @node: The node to set properties for.
  * @w: The weight of the node.
+ * @refc: The amount of references to the node.
  * @val: The value of the node.
- * @par: The parent of the node.
  * @l: The left child of the node.
  * @r: The right child of the node.
  *
  * This is a helper function to batch set multiple properties of a node at once.
+ * If the left or the right child nodes that are passed in are not NULL, this will
+ * also increment their respective reference counts by 1.
  */
-void rope_set(RopeNode *node, int w, uint32_t *val, RopeNode *par, RopeNode *l,
-              RopeNode *r);
+void rope_set(RopeNode *node, int w, int refc, uint32_t *val, RopeNode *l, RopeNode *r);
 
 /**
  * rope_merge() - Merges a list of nodes into a binary tree.
@@ -97,8 +98,9 @@ RopeNode *rope_build(uint32_t *text, int length);
  * @root: The root node of the rope.
  *
  * This function takes in a pointer to the root of a rope and traverses
- * the rope to collect all of the leaves of the rope. It returns a
- * dynamic array of the leaves.
+ * the rope to collect all of the leaves of the rope. It returns an
+ * array of the leaves. This array must be freed with rope_arr_free()
+ * once it is no longer used.
  */
 RopeNode **rope_collect(RopeNode *root);
 
@@ -114,14 +116,27 @@ RopeNode **rope_collect(RopeNode *root);
 uint32_t *rope_text(RopeNode *root);
 
 /**
- * rope_free() - Frees the rope from memory.
+ * rope_deref() - Decrements the reference count of a node.
  *
- * @root: The root node of the rope.
+ * @node: The rope node to dereference.
  *
- * This function frees the rope that is pointed to by the root node using
- * a depth-first traversal of the rope, freeing each node recursively.
+ * This function decrements the reference count of a node by 1. If the
+ * reference count of the node reaches zero, then it will free that node and
+ * attempt to dereference its children. If NULL is passed, nothing will happen.
  */
-void rope_free(RopeNode *root);
+void rope_deref(RopeNode *node);
+
+/**
+ * rope_arr_free() - Frees an array of RopeNode pointers.
+ *
+ * @arr: The array of node pointers.
+ * @length: The length of the array.
+ *
+ * This function frees an array of RopeNode pointers by first iterating
+ * over the array and dereferencing each of the nodes. Then, it frees
+ * the array itself. If NULL is passed, nothing will happen.
+ */
+void rope_arr_free(RopeNode **arr, int length);
 
 /**
  * rope_length() - Returns the length of the text in the rope.
@@ -172,19 +187,6 @@ RopeNode *rope_concat(RopeNode *first, RopeNode *second);
  * segment of the text.
  */
 RopeIndex rope_index(RopeNode *root, int index);
-
-/**
- * rope_rebuild() - Rebuilds a rope by replacing it with new nodes.
- *
- * @root: The root node of the rope.
- *
- * This function takes the root node of an existing rope, and makes a
- * new version of it by copying all of the values into a new rope with
- * separate nodes. A pointer to the root node of the new rope is returned.
- * This function returns NULL if it fails. For error information, use
- * SDL_GetError().
- */
-RopeNode *rope_rebuild(RopeNode *root);
 
 /**
  * rope_split() - Splits a rope into two ropes at the given index.

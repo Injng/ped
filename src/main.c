@@ -28,14 +28,15 @@ RopeNode **ropes = NULL;
 bool delete_rope(void) {
   if (arrlen(ropes) == 0) return true;
   if (arrlen(input) == 0) return true;
-  arrdel(input, arrlen(input) - 1);
-  RopeNode *rope = rope_build(input, arrlen(input));
+  RopeNode *rope = rope_delete(ropes[arrlen(ropes) - 1], arrlen(input) - 1);
   if (rope == NULL) return false;
   arrput(ropes, rope);
   return true;
 }
 
 bool insert_rope(uint32_t c) {
+  if (!validate_glyphs(c)) return true;
+  
   if (arrlen(input) == 0) {
     RopeNode *rope = rope_build(&c, 1);
     if (rope == NULL) return false;
@@ -55,7 +56,7 @@ bool insert_rope(uint32_t c) {
 
 void free_ropes(void) {
   for (int i = 0; i < arrlen(ropes); i++) {
-    rope_free(ropes[i]);
+    rope_deref(ropes[i]);
   }
   arrfree(ropes);
 }
@@ -137,6 +138,7 @@ int main(void)
 
     // render typed text
     if (input != NULL) arrfree(input);
+    input = NULL;
     if (arrlen(ropes) > 0) input = rope_text(ropes[arrlen(ropes) - 1]);
     if (!render_text(glyphs, renderer, input)) {
       pse();
