@@ -1,3 +1,4 @@
+#include <SDL3/SDL_keycode.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -89,7 +90,11 @@ int main(void)
         quit = true;
         break;
       case SDL_EVENT_KEY_DOWN:
-        if (event.key.key == SDLK_BACKSPACE && idx > -1) {
+        if (event.key.key == SDLK_RETURN) {
+          line++;
+          idx = -1;
+          buffer_newline(buffer);
+        } else if (event.key.key == SDLK_BACKSPACE && idx > -1) {
           if (!buffer_delete(buffer, line, idx)) {
             pse();
           }
@@ -115,10 +120,11 @@ int main(void)
     }
 
     // render the typed text
-    uint32_t *input = buffer_text(buffer, line);
+    uint32_t **input = buffer_text(buffer);
     if (!render_text(glyphs, renderer, input)) {
       pse();
     }
+    for (int i = 0; i < arrlen(input); i++) arrfree(input[i]);
     arrfree(input);
 
     // present the screen

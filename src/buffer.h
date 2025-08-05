@@ -15,10 +15,12 @@ void buffer_free(Buffer *buffer);
 
 bool buffer_validate(Buffer *buffer, int line);
 
+bool buffer_newline(Buffer *buffer);
+
 bool buffer_insert(Buffer *buffer, int line, int idx, uint32_t c);
 
 bool buffer_delete(Buffer *buffer, int line, int idx);
 
-uint32_t *buffer_text(Buffer *buffer, int line);
+uint32_t **buffer_text(Buffer *buffer);
 
 #endif // BUFFER_H

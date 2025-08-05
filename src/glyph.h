@@ -91,7 +91,8 @@ bool validate_glyphs(uint32_t c);
  *
  * @glyphs: The Glyphs struct to be used.
  * @renderer: The renderer used to render the text on.
- * @text: The text to be rendered as a dynamic array of unicode codepoints.
+ * @text: The text to be rendered as a dynamic array of lines of unicode
+ * codepoints.
  *
  * This function utilizes the textures within the Glyphs struct to render
  * text on the screen using the SDL_Renderer. It iterates through the given
@@ -101,6 +102,6 @@ bool validate_glyphs(uint32_t c);
  * function returns true if successful, and false if there are errors. Use
  * SDL_GetError() for more information.
  */
-bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t *text);
+bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t **text);
 
 #endif // GLYPH_H

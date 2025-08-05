@@ -70,7 +70,7 @@ bool validate_glyphs(uint32_t c)
   return c > 48 && c < GLYPHS_SIZE;
 }
 
-bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t *text)
+bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t **text)
 {
   // exit early if no text to render
   if (arrlen(text) == 0) return true;
@@ -81,22 +81,25 @@ bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t *text)
     return false;
   }
 
-  // render each character in the dynamic array
-  for (int i = 0; i < arrlen(text); i++) {
-    // destination rectangle always starts from offest and is calculated from the start
-    SDL_FRect dst = {
-      .x = PADDING + glyphs->width * i,
-      .y = PADDING,
-      .w = glyphs->width,
-      .h = glyphs->height
-    };
+  // iterate through each line
+  for (int line = 0; line < arrlen(text); line++) {
+    // render each character in the dynamic array
+    for (int i = 0; i < arrlen(text[line]); i++) {
+      // destination rectangle always starts from offest and is calculated from the start
+      SDL_FRect dst = {
+        .x = PADDING + glyphs->width * i,
+        .y = PADDING + line * glyphs->height,
+        .w = glyphs->width,
+        .h = glyphs->height
+      };
 
-    // check if text is in glyphs
-    if (hmgeti(glyphs->glyphs, text[i]) == -1) continue;
+      // check if text is in glyphs
+      if (hmgeti(glyphs->glyphs, text[line][i]) == -1) continue;
 
-    // render the texture to the destination rectangle
-    if (!SDL_RenderTexture(renderer, hmget(glyphs->glyphs, text[i]), NULL, &dst)) {
-      return false;
+      // render the texture to the destination rectangle
+      if (!SDL_RenderTexture(renderer, hmget(glyphs->glyphs, text[line][i]), NULL, &dst)) {
+        return false;
+      }
     }
   }
 

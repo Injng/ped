@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <SDL3/SDL_error.h>
@@ -69,6 +70,22 @@ bool buffer_validate(Buffer *buffer, int line)
   return true;
 }
 
+bool buffer_newline(Buffer *buffer)
+{
+  // make sure the 2d array of ropes is initialized
+  if (buffer->ropes == NULL) {
+    SDL_SetError("Buffer is not initialized properly");
+    return false;
+  }
+
+  // add empty rope to new line
+  RopeNode *empty_rope = rope_build(NULL, 0);
+  if (empty_rope == NULL) return false;
+  arrput(buffer->ropes, NULL);
+  arrput(buffer->ropes[arrlen(buffer->ropes) - 1], empty_rope);
+  return true;
+}
+
 bool buffer_insert(Buffer *buffer, int line, int idx, uint32_t c)
 {
   // check if buffer is valid with the parameters given
@@ -99,13 +116,17 @@ bool buffer_delete(Buffer *buffer, int line, int idx)
   return true;
 }
 
-uint32_t *buffer_text(Buffer *buffer, int line)
+uint32_t **buffer_text(Buffer *buffer)
 {
-  // check if buffer is valid with the parameters given
-  if (!buffer_validate(buffer, line)) return false;
+  // create dynamic array of text arrays
+  uint32_t **texts = NULL;
+  
+  // iterate through all lines and get text from the last rope in the line
+  for (int i = 0; i < arrlen(buffer->ropes); i++) {
+    int line_size = arrlen(buffer->ropes[i]);
+    uint32_t *text = rope_text(buffer->ropes[i][line_size-1]);
+    arrput(texts, text);
+  }
 
-  // get text from the last rope in the line
-  int line_size = arrlen(buffer->ropes[line]);
-  uint32_t *text = rope_text(buffer->ropes[line][line_size-1]);
-  return text;
+  return texts;
 }
