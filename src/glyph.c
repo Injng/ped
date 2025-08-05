@@ -67,7 +67,7 @@ void free_glyphs(Glyphs *text)
 
 bool validate_glyphs(uint32_t c)
 {
-  return c > 48 && c < GLYPHS_SIZE;
+  return (c > 48 && c < GLYPHS_SIZE) || c == 32;
 }
 
 bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t **text)
