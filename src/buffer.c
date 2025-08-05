@@ -18,6 +18,7 @@ Buffer *buffer_init(void)
     return NULL;
   }
   buffer->ropes = NULL;
+  buffer->text = NULL;
   arrput(buffer->ropes, NULL);
 
   // create empty rope as the default first rope
@@ -32,7 +33,10 @@ Buffer *buffer_init(void)
 
 void buffer_free(Buffer *buffer)
 {
+  // guard against null
   if (buffer == NULL) return;
+
+  // free the ropes
   if (buffer->ropes != NULL) {
     for (int i = 0; i < arrlen(buffer->ropes); i++) {
       if (buffer->ropes[i] != NULL) {
@@ -43,6 +47,14 @@ void buffer_free(Buffer *buffer)
       arrfree(buffer->ropes[i]);
     }
     arrfree(buffer->ropes);
+  }
+
+  // free the cached text
+  if (buffer->text != NULL) {
+    for (int i = 0; i < arrlen(buffer->text); i++) {
+      arrfree(buffer->text[i]);
+    }
+    arrfree(buffer->text);
   }
   free(buffer);
 }
@@ -116,17 +128,18 @@ bool buffer_delete(Buffer *buffer, int line, int idx)
   return true;
 }
 
-uint32_t **buffer_text(Buffer *buffer)
+bool buffer_text(Buffer *buffer, int line)
 {
-  // create dynamic array of text arrays
-  uint32_t **texts = NULL;
-  
-  // iterate through all lines and get text from the last rope in the line
-  for (int i = 0; i < arrlen(buffer->ropes); i++) {
-    int line_size = arrlen(buffer->ropes[i]);
-    uint32_t *text = rope_text(buffer->ropes[i][line_size-1]);
-    arrput(texts, text);
+  // append to text array if line exceeds bounds
+  if (line >= arrlen(buffer->text)) {
+    arrput(buffer->text, NULL);
   }
 
-  return texts;
+  // update the given line in the cache
+  int line_size = arrlen(buffer->ropes[line]);
+  uint32_t *text = rope_text(buffer->ropes[line][line_size - 1]);
+  arrfree(buffer->text[line]);
+  buffer->text[line] = text;
+  
+  return true;
 }

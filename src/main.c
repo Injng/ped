@@ -120,12 +120,12 @@ int main(void)
     }
 
     // render the typed text
-    uint32_t **input = buffer_text(buffer);
-    if (!render_text(glyphs, renderer, input)) {
+    if (!buffer_text(buffer, line)) {
       pse();
     }
-    for (int i = 0; i < arrlen(input); i++) arrfree(input[i]);
-    arrfree(input);
+    if (!render_text(glyphs, renderer, buffer->text)) {
+      pse();
+    }
 
     // present the screen
     if (!SDL_RenderPresent(renderer)) {
