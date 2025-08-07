@@ -11,6 +11,7 @@
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 #include "buffer.h"
+#include "cursor.h"
 #include "glyph.h"
 #include "rope.h"
 
@@ -76,8 +77,10 @@ int main(void)
   }
 
   // keep track of what line and index the user is on
-  int line = 0;
-  int idx = -1;
+  Cursor cursor = {
+    .line = 0,
+    .idx = -1
+  };
   
   // event loop with quit event state
   bool quit = false;
@@ -91,19 +94,19 @@ int main(void)
         break;
       case SDL_EVENT_KEY_DOWN:
         if (event.key.key == SDLK_RETURN) {
-          line++;
-          idx = -1;
+          cursor.line++;
+          cursor.idx = -1;
           buffer_newline(buffer);
-        } else if (event.key.key == SDLK_BACKSPACE && idx > -1) {
-          if (!buffer_delete(buffer, line, idx)) {
+        } else if (event.key.key == SDLK_BACKSPACE && cursor.idx > -1) {
+          if (!buffer_delete(buffer, cursor.line, cursor.idx)) {
             pse();
           }
-          idx--;
+          cursor.idx--;
         } else if (validate_glyphs(event.key.key)) {
-          if (!buffer_insert(buffer, line, idx, event.key.key)) {
+          if (!buffer_insert(buffer, cursor.line, cursor.idx, event.key.key)) {
             pse();
           }
-          idx++;
+          cursor.idx++;
         }
         break;
       }
@@ -120,10 +123,15 @@ int main(void)
     }
 
     // render the typed text
-    if (!buffer_text(buffer, line)) {
+    if (!buffer_text(buffer, cursor.line)) {
       pse();
     }
     if (!render_text(glyphs, renderer, buffer->text)) {
+      pse();
+    }
+
+    // render the cursor
+    if (!render_cursor(renderer, &cursor, glyphs)) {
       pse();
     }
 

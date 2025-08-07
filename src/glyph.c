@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <SDL3/SDL_render.h>

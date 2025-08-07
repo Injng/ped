@@ -66,5 +66,22 @@
     "directory": "/home/lnjng/Projects/dev/pedit",
     "file": "/home/lnjng/Projects/dev/pedit/src/buffer.c",
     "output": "/home/lnjng/Projects/dev/pedit/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-pedantic",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-fsanitize=address",
+      "-o",
+      "main.o",
+      "src/cursor.c"
+    ],
+    "directory": "/home/lnjng/Projects/dev/pedit",
+    "file": "/home/lnjng/Projects/dev/pedit/src/cursor.c",
+    "output": "/home/lnjng/Projects/dev/pedit/main.o"
   }
 ]
