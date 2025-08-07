@@ -5,6 +5,7 @@
 #include <SDL3/SDL_error.h>
 
 #include "buffer.h"
+#include "cursor.h"
 #include "glyph.h"
 #include "rope.h"
 #include "stb_ds.h"
@@ -82,7 +83,7 @@ bool buffer_validate(Buffer *buffer, int line)
   return true;
 }
 
-bool buffer_newline(Buffer *buffer)
+bool buffer_newline(Buffer *buffer, Cursor *cursor)
 {
   // make sure the 2d array of ropes is initialized
   if (buffer->ropes == NULL) {
@@ -95,11 +96,19 @@ bool buffer_newline(Buffer *buffer)
   if (empty_rope == NULL) return false;
   arrput(buffer->ropes, NULL);
   arrput(buffer->ropes[arrlen(buffer->ropes) - 1], empty_rope);
+
+  // update cursor location
+  cursor->line++;
+  cursor->idx = -1;
   return true;
 }
 
-bool buffer_insert(Buffer *buffer, int line, int idx, uint32_t c)
+bool buffer_insert(Buffer *buffer, Cursor *cursor, uint32_t c)
 {
+  // get line and idx from cursor
+  int line = cursor->line;
+  int idx = cursor->idx;
+  
   // check if buffer is valid with the parameters given
   if (!buffer_validate(buffer, line)) return false;
 
@@ -108,13 +117,18 @@ bool buffer_insert(Buffer *buffer, int line, int idx, uint32_t c)
   RopeNode *new_rope = rope_insert(buffer->ropes[line][line_size - 1], c, idx);
   if (new_rope == NULL) return false;
 
-  // add to the line array and return
+  // add to the line array and update cursor
   arrput(buffer->ropes[line], new_rope);
+  cursor->idx++;
   return true;
 }
 
-bool buffer_delete(Buffer *buffer, int line, int idx)
+bool buffer_delete(Buffer *buffer, Cursor *cursor)
 {
+  // get line and idx from cursor
+  int line = cursor->line;
+  int idx = cursor->idx;
+  
   // check if buffer is valid with the parameters given
   if (!buffer_validate(buffer, line)) return false;
 
@@ -123,8 +137,9 @@ bool buffer_delete(Buffer *buffer, int line, int idx)
   RopeNode *new_rope = rope_delete(buffer->ropes[line][line_size - 1], idx);
   if (new_rope == NULL) return false;
 
-  // add to the line array and return
+  // add to the line array and update cursor
   arrput(buffer->ropes[line], new_rope);
+  cursor->idx--;
   return true;
 }
 

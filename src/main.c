@@ -94,19 +94,15 @@ int main(void)
         break;
       case SDL_EVENT_KEY_DOWN:
         if (event.key.key == SDLK_RETURN) {
-          cursor.line++;
-          cursor.idx = -1;
-          buffer_newline(buffer);
+          buffer_newline(buffer, &cursor);
         } else if (event.key.key == SDLK_BACKSPACE && cursor.idx > -1) {
-          if (!buffer_delete(buffer, cursor.line, cursor.idx)) {
+          if (!buffer_delete(buffer, &cursor)) {
             pse();
           }
-          cursor.idx--;
         } else if (validate_glyphs(event.key.key)) {
-          if (!buffer_insert(buffer, cursor.line, cursor.idx, event.key.key)) {
+          if (!buffer_insert(buffer, &cursor, event.key.key)) {
             pse();
           }
-          cursor.idx++;
         }
         break;
       }

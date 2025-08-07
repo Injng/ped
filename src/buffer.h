@@ -2,7 +2,9 @@
 #define BUFFER_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
+#include "cursor.h"
 #include "rope.h"
 
 /**
@@ -60,43 +62,45 @@ bool buffer_validate(Buffer *buffer, int line);
  * buffer_newline() - Inserts a new line in the buffer.
  *
  * @buffer: The Buffer struct to use.
+ * @cursor: The Cursor struct to update.
  *
  * This function inserts a new line into the dynamic array of ropes in the
  * Buffer struct. By default, it initializes the first rope of the new line
- * to be an empty rope. It returns true on success and false on failure. For
- * error information, use SDL_GetError().
+ * to be an empty rope. It will also automatically update the state of the
+ * cursor to be on the new line. It returns true on success and false on
+ * failure. For error information, use SDL_GetError().
  */
-bool buffer_newline(Buffer *buffer);
+bool buffer_newline(Buffer *buffer, Cursor *cursor);
 
 /**
  * buffer_insert() - Inserts a character into the buffer.
  *
  * @buffer: The Buffer struct to use.
- * @line: The line to insert the character on (zero-indexed).
- * @idx: The index of the character to insert after in the line.
+ * @cursor: The Cursor struct to update.
  * @c: The unicode codepoint of the character to insert.
  *
  * This function inserts a character into the buffer at the given line,
- * which is zero-indexed, and at a given index within that line. It
- * does this by creating a new rope using rope_insert() and saving it
- * into the array of ropes. It returns true on success and false on failure.
- * For error information, use SDL_GetError().
+ * which is zero-indexed, and at a given index within that line. The index
+ * and line is given within the Cursor struct that is passed in. It does
+ * this by creating a new rope using rope_insert() and saving it into the
+ * array of ropes. It returns true on success and false on failure. For
+ * error information, use SDL_GetError().
  */
-bool buffer_insert(Buffer *buffer, int line, int idx, uint32_t c);
+bool buffer_insert(Buffer *buffer, Cursor *cursor, uint32_t c);
 
 /**
  * buffer_delete() - Deletes a character in the buffer.
  *
  * @buffer: The Buffer struct to use.
- * @line: The line to delete on (zero-indexed).
- * @idx: The index of the character to delete.
+ * @cursor: The Cursor struct to update.
  *
  * This function deletes a character in a buffer at the given line
- * and index. It does this by creating a new rope using rope_delete()
- * and saving it into the array of ropes. It returns true on success and
- * false on failure. For error information, use SDL_GetError().
+ * and index in the Cursor struct. It does this by creating a new rope
+ * using rope_delete() and saving it into the array of ropes. It returns
+ * true on success and false on failure. For error information, use
+ * SDL_GetError().
  */
-bool buffer_delete(Buffer *buffer, int line, int idx);
+bool buffer_delete(Buffer *buffer, Cursor *cursor);
 
 /**
  * buffer_text() - Update the cache of text in the buffer.
