@@ -103,6 +103,8 @@ int main(void)
           if (!buffer_insert(buffer, &cursor, event.key.key)) {
             pse();
           }
+        } else {
+          move_cursor(&cursor, buffer, event.key.key);
         }
         break;
       }

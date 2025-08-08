@@ -4,8 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "cursor.h"
 #include "rope.h"
+
+struct Cursor;
 
 /**
  * struct Buffer - Stores rope tree and cached text for the buffer.
@@ -70,7 +71,7 @@ bool buffer_validate(Buffer *buffer, int line);
  * cursor to be on the new line. It returns true on success and false on
  * failure. For error information, use SDL_GetError().
  */
-bool buffer_newline(Buffer *buffer, Cursor *cursor);
+bool buffer_newline(Buffer *buffer, struct Cursor *cursor);
 
 /**
  * buffer_insert() - Inserts a character into the buffer.
@@ -86,7 +87,7 @@ bool buffer_newline(Buffer *buffer, Cursor *cursor);
  * array of ropes. It returns true on success and false on failure. For
  * error information, use SDL_GetError().
  */
-bool buffer_insert(Buffer *buffer, Cursor *cursor, uint32_t c);
+bool buffer_insert(Buffer *buffer, struct Cursor *cursor, uint32_t c);
 
 /**
  * buffer_delete() - Deletes a character in the buffer.
@@ -100,7 +101,7 @@ bool buffer_insert(Buffer *buffer, Cursor *cursor, uint32_t c);
  * true on success and false on failure. For error information, use
  * SDL_GetError().
  */
-bool buffer_delete(Buffer *buffer, Cursor *cursor);
+bool buffer_delete(Buffer *buffer, struct Cursor *cursor);
 
 /**
  * buffer_text() - Update the cache of text in the buffer.
