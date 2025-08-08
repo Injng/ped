@@ -393,8 +393,9 @@ RopeNode *rope_insert(RopeNode *root, uint32_t c, int idx)
 
   // if roots[1] is an empty rope, skip the concat
   if (roots[1]->weight != 0) {
-    rope_deref(full_concat);
+    RopeNode *prev_concat = full_concat;
     full_concat = rope_concat(full_concat, roots[1]);
+    rope_deref(prev_concat);
     if (full_concat == NULL) {
       rope_deref(insert_node);
       rope_arr_free(roots, 2);
