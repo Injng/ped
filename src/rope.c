@@ -248,6 +248,15 @@ int rope_height(RopeNode *root, int curr_height)
 
 RopeNode *rope_concat(RopeNode *first, RopeNode *second)
 {
+  // skip if one of the ropes is empty
+  if (first->weight == 0) {
+    second->ref_count++;
+    return second;
+  } else if (second->weight == 0) {
+    first->ref_count++;
+    return first;
+  }
+  
   // allocate memory for new root node
   RopeNode *root = malloc(sizeof(RopeNode));
   if (root == NULL) {
@@ -334,14 +343,16 @@ RopeNode **rope_split(RopeNode *root, int index)
   if (index >= root->weight) {
     new_roots = rope_split(root->right, index - root->weight);
     if (new_roots == NULL) goto cleanup;
-    new_roots[0]->ref_count--;
+    RopeNode* right = new_roots[0];
     new_roots[0] = rope_concat(root->left, new_roots[0]);
+    right->ref_count--;
     if (new_roots[0] == NULL) goto cleanup;
   } else {
     new_roots = rope_split(root->left, index);
     if (new_roots == NULL) goto cleanup;
-    new_roots[1]->ref_count--;
+    RopeNode* left = new_roots[1];
     new_roots[1] = rope_concat(new_roots[1], root->right);
+    left->ref_count--;
     if (new_roots[1] == NULL) goto cleanup;
   }
   return new_roots;

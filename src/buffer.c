@@ -83,7 +83,7 @@ bool buffer_validate(Buffer *buffer, int line)
   return true;
 }
 
-bool buffer_newline(Buffer *buffer, Cursor *cursor)
+bool buffer_newline(Buffer *buffer, struct Cursor *cursor)
 {
   // make sure the 2d array of ropes is initialized
   if (buffer->ropes == NULL) {
@@ -103,7 +103,7 @@ bool buffer_newline(Buffer *buffer, Cursor *cursor)
   return true;
 }
 
-bool buffer_insert(Buffer *buffer, Cursor *cursor, uint32_t c)
+bool buffer_insert(Buffer *buffer, struct Cursor *cursor, uint32_t c)
 {
   // get line and idx from cursor
   int line = cursor->line;
@@ -123,7 +123,7 @@ bool buffer_insert(Buffer *buffer, Cursor *cursor, uint32_t c)
   return true;
 }
 
-bool buffer_delete(Buffer *buffer, Cursor *cursor)
+bool buffer_delete(Buffer *buffer, struct Cursor *cursor)
 {
   // get line and idx from cursor
   int line = cursor->line;
