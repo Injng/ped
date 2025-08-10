@@ -190,7 +190,7 @@ uint32_t *rope_text(RopeNode *root)
   // iterate through leaves and add to the dynamic array
   for (int i = 0; i < arrlen(leaves); i++) {
     RopeNode *leaf = leaves[i];
-    leaf->ref_count--;
+    rope_deref(leaf);
     uint32_t *value = leaf->value;
     for (int j = 0; j < leaf->weight; j++) {
       arrput(text, value[j]);
@@ -345,14 +345,14 @@ RopeNode **rope_split(RopeNode *root, int index)
     if (new_roots == NULL) goto cleanup;
     RopeNode* right = new_roots[0];
     new_roots[0] = rope_concat(root->left, new_roots[0]);
-    right->ref_count--;
+    rope_deref(right);
     if (new_roots[0] == NULL) goto cleanup;
   } else {
     new_roots = rope_split(root->left, index);
     if (new_roots == NULL) goto cleanup;
     RopeNode* left = new_roots[1];
     new_roots[1] = rope_concat(new_roots[1], root->right);
-    left->ref_count--;
+    rope_deref(left);
     if (new_roots[1] == NULL) goto cleanup;
   }
   return new_roots;
