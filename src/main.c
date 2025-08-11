@@ -77,10 +77,12 @@ int main(void)
   }
 
   // keep track of what line and index the user is on
-  Cursor cursor = {
-    .line = 0,
-    .idx = -1
-  };
+  Cursor cursor = {.line = 0, .idx = -1};
+
+  // enable blending
+  if (!SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND)) {
+    pse();
+  }  
   
   // event loop with quit event state
   bool quit = false;
