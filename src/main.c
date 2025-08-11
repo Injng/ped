@@ -63,7 +63,7 @@ int main(void)
     pse();
   }
 
-  // create a glyphs structure to cache the font glyphs
+  // create a glyphs structure to cache the font glyphs  
   SDL_Color color = { .r = 0, .g = 0, .b = 0, .a = 255 };
   glyphs = init_glyphs(font, renderer, color);
   if (glyphs == NULL) {

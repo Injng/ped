@@ -91,15 +91,26 @@ bool buffer_newline(Buffer *buffer, struct Cursor *cursor)
     return false;
   }
 
-  // add empty rope to new line
-  RopeNode *empty_rope = rope_build(NULL, 0);
-  if (empty_rope == NULL) return false;
-  arrput(buffer->ropes, NULL);
-  arrput(buffer->ropes[arrlen(buffer->ropes) - 1], empty_rope);
+  // split the rope at the current cursor index
+  int line_size = arrlen(buffer->ropes[cursor->line]);
+  RopeNode **roots = rope_split(buffer->ropes[cursor->line][line_size - 1], cursor->idx);
+  if (roots == NULL) return false;
+
+  // add pre-split rope to current line, and post-split rope to new line
+  arrput(buffer->ropes[cursor->line], roots[0]);
+  stbds_arrinsn(buffer->ropes, (size_t)(cursor->line + 1), (size_t)1);
+  buffer->ropes[cursor->line + 1] = NULL;
+  arrput(buffer->ropes[cursor->line + 1], roots[1]);
+
+  // rebuild text cache
+  for (int i = 0; i < arrlen(buffer->ropes); i++) {
+    buffer_text(buffer, i);
+  }
 
   // update cursor location
   cursor->line++;
   cursor->idx = -1;
+  free(roots);
   return true;
 }
 
