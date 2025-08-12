@@ -29,6 +29,10 @@ Buffer *buffer_init(void)
     return NULL;
   }
   arrput(buffer->ropes[0], empty_rope);
+
+  // create undo and redo dynamic arrays
+  buffer->undo = NULL;
+  buffer->redo = NULL;
   return buffer;
 }
 
@@ -57,6 +61,10 @@ void buffer_free(Buffer *buffer)
     }
     arrfree(buffer->text);
   }
+
+  // free the undo and redo stacks
+  arrfree(buffer->undo);
+  arrfree(buffer->redo);
   free(buffer);
 }
 
@@ -107,6 +115,14 @@ bool buffer_newline(Buffer *buffer, struct Cursor *cursor)
     buffer_text(buffer, i);
   }
 
+  // store action
+  Action action = {
+    .type = ACTION_NEWLINE,
+    .line = cursor->line,
+    .idx = cursor->idx
+  };
+  arrput(buffer->undo, action);
+
   // update cursor location
   cursor->line++;
   cursor->idx = -1;
@@ -128,6 +144,14 @@ bool buffer_insert(Buffer *buffer, struct Cursor *cursor, uint32_t c)
   RopeNode *new_rope = rope_insert(buffer->ropes[line][line_size - 1], c, idx);
   if (new_rope == NULL) return false;
 
+  // store action
+  Action action = {
+    .type = ACTION_INSERT,
+    .line = line,
+    .idx = idx
+  };
+  arrput(buffer->undo, action);
+
   // add to the line array and update cursor
   arrput(buffer->ropes[line], new_rope);
   cursor->idx++;
@@ -147,6 +171,14 @@ bool buffer_delete(Buffer *buffer, struct Cursor *cursor)
   int line_size = arrlen(buffer->ropes[line]);
   RopeNode *new_rope = rope_delete(buffer->ropes[line][line_size - 1], idx);
   if (new_rope == NULL) return false;
+  
+  // store action
+  Action action = {
+    .type = ACTION_DELETE,
+    .line = line,
+    .idx = idx
+  };
+  arrput(buffer->undo, action);
 
   // add to the line array and update cursor
   arrput(buffer->ropes[line], new_rope);

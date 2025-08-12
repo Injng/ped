@@ -8,11 +8,36 @@
 
 struct Cursor;
 
+typedef enum {
+  ACTION_INSERT,
+  ACTION_DELETE,
+  ACTION_NEWLINE,
+} ActionType;
+
+/**
+ * struct Action - Stores information about a user action.
+ *
+ * @type: The type of action performed.
+ * @line: The line the cursor was on before the action was performed.
+ * @idx: The character index the cursor was on before the action.
+ *
+ * This is a struct to hold information about a particular action that was
+ * performed. It is meant to be stored into a dynamic array in order to
+ * keep a history of previous actions and allow undo and redo functionality.
+ */
+typedef struct Action {
+  ActionType type;
+  int line;
+  int idx;
+} Action;
+
 /**
  * struct Buffer - Stores rope tree and cached text for the buffer.
  *
  * @ropes: A 2D dynamic array of ropes.
  * @text: A 2D dynamic array of unicode codepoints.
+ * @undo: A dynamic array of action history.
+ * @redo: A dynamic array of undo history.
  *
  * This is a struct to hold information about a buffer. It holds a 2D
  * dynamic array of ropes, where subarray of ropes represents a different
@@ -23,6 +48,8 @@ struct Cursor;
 typedef struct Buffer {
   RopeNode ***ropes;
   uint32_t **text;
+  Action *undo;
+  Action *redo;
 } Buffer;
 
 /**
