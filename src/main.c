@@ -130,6 +130,11 @@ int main(void)
       pse();
     }
 
+    // render line numbers
+    if (!render_linenum(glyphs, renderer, arrlen(buffer->text))) {
+      pse();
+    }
+
     // render the cursor
     if (!render_cursor(renderer, &cursor, glyphs)) {
       pse();

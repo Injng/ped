@@ -10,6 +10,9 @@
 // Determines the padding around the text input.
 #define PADDING 100
 
+// Determines the margin size for line numbers.
+#define MARGIN 80
+
 /**
  * struct Encoding - Defines a key-value pair with the key as the unicode
  * codepoint and the value as the glyph texture.
@@ -85,6 +88,20 @@ void free_glyphs(Glyphs *text);
  * valid text character that is used inside of the glyphs system.
  */
 bool validate_glyphs(uint32_t c);
+
+/**
+ * render_linenum() - Renders line numbers in the left margin of the buffer.
+ *
+ * @glyphs: The Glyphs struct to be used.
+ * @renderer: The renderer used to render the text on.
+ * @lines: The number of line numbers to render.
+ *
+ * This function takes in the number of lines there are and renders line
+ * numbers for each in the margin of the buffer. This function returns true if
+ * successful, and false if there are errors. Use SDL_GetError() for more
+ * information.
+ */
+bool render_linenum(Glyphs *glyphs, SDL_Renderer *renderer, int lines);
 
 /**
  * render_text() - Uses a populated Glyphs struct to render text.

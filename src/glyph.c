@@ -72,6 +72,33 @@ bool validate_glyphs(uint32_t c)
   return (c > 48 && c < GLYPHS_SIZE) || c == 32;
 }
 
+bool render_linenum(Glyphs *glyphs, SDL_Renderer *renderer, int lines)
+{
+  for (int i = 0; i < lines; i++) {
+    // destination rectangle for line numbers
+    SDL_FRect dst = {
+      .x = MARGIN,
+      .y = PADDING + i * glyphs->height,
+      .w = glyphs->width,
+      .h = glyphs->height
+    };
+
+    int line = i + 1;
+    while (line != 0) {
+      // render a digit of the line number
+      char digit = '0' + line % 10;
+      if (!SDL_RenderTexture(renderer, hmget(glyphs->glyphs, (uint32_t)digit), NULL, &dst)) {
+        return false;
+      }
+
+      // update remaining line number digits and render rectangle
+      line = line / 10;
+      dst.x -= glyphs->width;
+    }
+  }
+  return true;
+}
+
 bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t **text)
 {
   // exit early if no text to render

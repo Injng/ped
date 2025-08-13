@@ -201,3 +201,4 @@ bool buffer_text(Buffer *buffer, int line)
   
   return true;
 }
+
