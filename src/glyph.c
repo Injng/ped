@@ -9,7 +9,7 @@
 #include "stb_ds.h"
 #include "glyph.h"
 
-Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color)
+Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer)
 {
   // initialize hash map of glyphs and allocate memory for our glyphs struct
   Encoding *textures = NULL;
@@ -30,7 +30,7 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color)
   // iterate through the unicode codepoints and generate textures for the font
   for (int i = 48; i < GLYPHS_SIZE; i++) {
     // render a blended glyph surface
-    SDL_Surface *gs = TTF_RenderGlyph_Blended(font, i, color);
+    SDL_Surface *gs = TTF_RenderGlyph_Blended(font, i, COLOR_WHITE);
     if (gs == NULL) {
       free(glyphs);
       return NULL;
@@ -74,6 +74,15 @@ bool validate_glyphs(uint32_t c)
 
 bool render_linenum(Glyphs *glyphs, SDL_Renderer *renderer, int lines)
 {
+  // modify color of all the digits to gray
+  for (int i = 0; i < 10; i++) {
+    char digit = '0' + i;
+    if (!SDL_SetTextureColorMod(hmget(glyphs->glyphs, (uint32_t)digit),
+                                COLOR_GREY.r, COLOR_GREY.g, COLOR_GREY.b)) {
+      return false;
+    }
+  }
+  
   for (int i = 0; i < lines; i++) {
     // destination rectangle for line numbers
     SDL_FRect dst = {
@@ -94,6 +103,15 @@ bool render_linenum(Glyphs *glyphs, SDL_Renderer *renderer, int lines)
       // update remaining line number digits and render rectangle
       line = line / 10;
       dst.x -= glyphs->width;
+    }
+  }
+
+  // reset color of all the digits to black
+  for (int i = 0; i < 10; i++) {
+    char digit = '0' + i;
+    if (!SDL_SetTextureColorMod(hmget(glyphs->glyphs, (uint32_t)digit),
+                                COLOR_BLACK.r, COLOR_BLACK.g, COLOR_BLACK.b)) {
+      return false;
     }
   }
   return true;
@@ -125,8 +143,21 @@ bool render_text(Glyphs *glyphs, SDL_Renderer *renderer, uint32_t **text)
       // check if text is in glyphs
       if (hmgeti(glyphs->glyphs, text[line][i]) == -1) continue;
 
+      // get glyph texture
+      SDL_Texture *texture = hmget(glyphs->glyphs, text[line][i]);
+
+      // modulate texture color to black
+      if (!SDL_SetTextureColorMod(texture, COLOR_BLACK.r, COLOR_BLACK.g, COLOR_BLACK.b)) {
+        return false;
+      }
+
       // render the texture to the destination rectangle
       if (!SDL_RenderTexture(renderer, hmget(glyphs->glyphs, text[line][i]), NULL, &dst)) {
+        return false;
+      }
+
+      // reset texture color to white
+      if (!SDL_SetTextureColorMod(texture, COLOR_WHITE.r, COLOR_WHITE.g, COLOR_WHITE.b)) {
         return false;
       }
     }

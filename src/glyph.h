@@ -13,6 +13,14 @@
 // Determines the margin size for line numbers.
 #define MARGIN 80
 
+// Define color constants.
+#define COLOR_WHITE                                                            \
+  (SDL_Color) { 255, 255, 255, 255 }
+#define COLOR_GREY                                                             \
+  (SDL_Color) { 128, 128, 128, 255 }
+#define COLOR_BLACK                                                            \
+  (SDL_Color) { 0, 0, 0, 255 }
+
 /**
  * struct Encoding - Defines a key-value pair with the key as the unicode
  * codepoint and the value as the glyph texture.
@@ -58,15 +66,14 @@ typedef struct Glyphs {
  *
  * @font: The font used to generate the glyphs.
  * @renderer: The renderer used to generate the textures.
- * @color: The color of the glyphs.
  *
  * This function returns a pointer to a Glyphs struct with its hash map
  * populated with codepoints and their corresponding glyph textures. The
- * textures are set according to the passed in color and font. free_glyphs()
+ * textures are set according to the passed in font. free_glyphs()
  * must be called before the program exits. This function returns NULL if
  * it fails. For error information, use SDL_GetError().
  */
-Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer, SDL_Color color);
+Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer);
 
 /**
  * free_glyphs() - Frees a Glyphs struct from memory.
