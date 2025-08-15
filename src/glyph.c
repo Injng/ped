@@ -28,7 +28,7 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer)
   }
 
   // iterate through the unicode codepoints and generate textures for the font
-  for (int i = 48; i < GLYPHS_SIZE; i++) {
+  for (int i = GLYPHS_START; i < GLYPHS_END; i++) {
     // render a blended glyph surface
     SDL_Surface *gs = TTF_RenderGlyph_Blended(font, i, COLOR_WHITE);
     if (gs == NULL) {
@@ -60,7 +60,7 @@ Glyphs *init_glyphs(TTF_Font *font, SDL_Renderer *renderer)
 void free_glyphs(Glyphs *text)
 {
   if (text == NULL) return;
-  for (int i = 0; i < GLYPHS_SIZE; i++) {
+  for (int i = GLYPHS_START; i < GLYPHS_END; i++) {
     SDL_DestroyTexture(text->glyphs[i].value);
   }
   hmfree(text->glyphs);
@@ -69,7 +69,7 @@ void free_glyphs(Glyphs *text)
 
 bool validate_glyphs(uint32_t c)
 {
-  return (c > 48 && c < GLYPHS_SIZE) || c == 32;
+  return (c >= GLYPHS_START && c < GLYPHS_END) || c == 32;
 }
 
 bool render_linenum(Glyphs *glyphs, SDL_Renderer *renderer, int lines)
